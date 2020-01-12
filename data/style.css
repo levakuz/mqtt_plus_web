@@ -1,0 +1,75 @@
+body{
+	background-color: #f09a1a;
+}
+h1{
+	padding-left: 650px;
+}
+.connectmqtt{
+	display: inline-block;
+	background-color: #000000;
+	width: 200px;
+	height: 100px;
+	margin-left: 200px;
+	font-size: 200%;
+	cursor: pointer;
+	color: white;
+	border-width: 2px;
+	border-color: #c96f00;
+}
+.disconnectmqtt{
+	display: inline-block;
+	background-color: #000000;
+	width: 200px;
+	height: 100px;
+	margin-left: 200px;
+	font-size: 200%;
+	cursor: pointer;
+	color: white;
+	border-width: 2px;
+	border-color: #c96f00;
+
+}
+.subscribe{
+	display: inline-block;;
+	background-color: #000000;
+	width: 200px;
+	height: 100px;
+	margin-left: 200px;
+	font-size: 200%;
+	cursor: pointer;
+	color: white;
+	border-width: 2px;
+	border-color: #c96f00;
+
+}
+.unsubscribe{
+	display: inline-block;
+	background-color: #000000;
+	width: 200px;
+	height: 100px;
+	margin-left: 200px;
+	font-size: 200%;
+	cursor: pointer;
+	margin-top: 25px;
+	color: white;
+	border-width: 2px;
+	border-color: #c96f00;
+}
+p{
+	margin-top: 5px;
+	margin-left: 700px;
+	font-size: 200%;
+}
+.ip{
+	margin-left: 500px;
+	height: 20px;
+	width: 250px;
+	text-align: center;
+}
+.topic{
+	margin-left: 300px;
+	height: 20px;
+width: 250px;
+	text-align: center;
+
+}

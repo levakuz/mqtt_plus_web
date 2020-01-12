@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+  		<link rel="icon" href="data:,">
+		<title>Натройка ESP-32</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+	<body>
+		<h1>Натройка контроллера ESP-32 №1</h1>
+		<p>Состояние mqtt: <strong> %STATE%</strong></p>
+		<input value="Введите ip адрес mqtt хоста" class="ip" > 
+		<input value="Введите имя топика для подписки" class="topic" ></p>
+		<a href="/Connecttomqtt"><button class="button connectmqtt">connect</button></a>
+		<a href="/Disconnectmqtt"><button class="button disconnectmqtt">disconnect</button></a>
+		<a href="/Subcribe"><button class="button subscribe">subscribe</button></a>
+		<a href="/Unsubscribe"><button class="button unsubscribe">unsubscribe</button></a>
+		
+
+	</body>
+</html>
