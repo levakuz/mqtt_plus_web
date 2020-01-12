@@ -1,22 +1,21 @@
-#include "WiFi.h"
-#include "ESPAsyncWebServer.h"
-#include "SPIFFS.h"
-#define WIFI_SSID "levakuz"
-#define WIFI_PASSWORD "qazwsxtgb"
-#define MQTT_HOST IPAddress(192,168,1,105)
-#define MQTT_PORT 1883
-#include <AsyncMqttClient.h>
-#include <OneWire.h>
-#include <SPI.h>
-#include <MFRC522.h>
+#include "WiFi.h" //библиотека для использования Wi-Fi на esp
+#include "ESPAsyncWebServer.h" //библиотека веб сервера esp
+#include "SPIFFS.h" //библиотека файловой системы SPIFFS
+#define WIFI_SSID "levakuz" //имя Wi-Fi сети
+#define WIFI_PASSWORD "****" //пароль Wi-Fi сети
+#define MQTT_HOST IPAddress(192,168,1,105)//ip адрес mqtt брокера
+#define MQTT_PORT 1883 //порт mqtt брокера
+#include <AsyncMqttClient.h> //библиотека mqtt клиента
+#include <OneWire.h> //библиотека протокола 1-wire
+#include <SPI.h> //библиотека SPI интерфейса
+#include <MFRC522.h>//библиотека для RFID модуля
 
-#define RST_PIN         22         // Configurable, see typical pin layout above
-#define SS_PIN          21         // Configurable, see typical pin layout above
+#define RST_PIN         22         // указание RST пина, подключенного к esp
+#define SS_PIN          21         // указание SS пина, подключенного к esp
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
-AsyncMqttClient mqttClient;
-TimerHandle_t mqttReconnectTimer;
-TimerHandle_t wifiReconnectTimer;
+MFRC522 mfrc522(SS_PIN, RST_PIN);  // инициализация RFID модуля с указанием пинов
+AsyncMqttClient mqttClient; //инициализация mqtt клиента
+
 // Создаем экземпляр класса «AsyncWebServer»
 // под названием «server» и задаем ему номер порта «80»:
 AsyncWebServer server(80);
@@ -42,13 +41,13 @@ String processor(const String& var){
 
 void setup() {
 Serial.begin(115200);
-SPI.begin();      // Init SPI bus
-mfrc522.PCD_Init();   // Init MFRC522
-delay(4);        // Optional delay. Some board do need more time after init to be ready, see Readme
-  mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader details
+SPI.begin();      // инициализация SPI шины, используется для загрузки в память устройства данных о веб интерфейсе
+mfrc522.PCD_Init();   // Инициализация RFID модуля
+delay(4);        
+mfrc522.PCD_DumpVersionToSerial();  // функция считывания данных с RFID меток
 WiFi.onEvent(WiFiEvent); //задает то. что при подключении к wi-fi будет запущена функция обратного вызова WiFiEvent(), которая напечатает данные о WiFi подключении
 connectToWifi();
-// Инициализируем SPIFFS:
+// Инициализируем фалойвую систему SPIFFS:
 if(!SPIFFS.begin(true)){
   Serial.println("An Error has occurred while mounting SPIFFS");
               //  "При монтировании SPIFFS произошла ошибка"
@@ -69,7 +68,7 @@ server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
 request->send(SPIFFS, "/style.css", "text/css");
   });
 
-    
+// URL для подключения к mqtt брокеру   
 server.on("/Connecttomqtt", HTTP_GET, [](AsyncWebServerRequest *request){
 a = 1;
 mqttClient.setServer(MQTT_HOST, MQTT_PORT);
@@ -78,7 +77,7 @@ mqttClient.onConnect(onMqttConnect);
 request->send(SPIFFS, "/index.html", String(), false, processor);
   });
 
-  
+// URL для отключения от mqtt брокера
   server.on("/Disconnectmqtt", HTTP_GET, [](AsyncWebServerRequest *request){
 a = 0;
 mqttClient.disconnect(); 
@@ -86,13 +85,13 @@ Serial.println("Disconnected from mqtt")  ;
 request->send(SPIFFS, "/index.html", String(), false,processor);
   });
 
-  
+// URL для подписки на топик (еще не реализовано)     
   server.on("/Subscribe", HTTP_GET, [](AsyncWebServerRequest *request){
 mqttClient.onSubscribe(onMqttSubscribe);   
 request->send(SPIFFS, "/index.html", String(), false);
   });
 
-  
+// URL для отписки от топика (еще не реализовано)  
 server.on("/Unsubscribe", HTTP_GET, [](AsyncWebServerRequest *request){
 mqttClient.onUnsubscribe(onMqttUnsubscribe);  
 request->send(SPIFFS, "/index.html", String(), false);
@@ -209,15 +208,16 @@ if ( ! mfrc522.PICC_IsNewCardPresent()) {
   if ( ! mfrc522.PICC_ReadCardSerial()) {
     return;
   }   
+  //блок считывания и отправки uid RFID метки
 unsigned long first_byte;
 unsigned long second_byte;
 unsigned long third_byte;
 unsigned long fourth_byte;
-char mystr1[4];
-char mystr2[4];
-char mystr3[4];
-char mystr4[4];
-char id[8];
+char mystr1[20];
+char mystr2[20];
+char mystr3[20];
+char mystr4[20];
+char id[20];
 first_byte = mfrc522.uid.uidByte[0];
 second_byte = mfrc522.uid.uidByte[1];
 third_byte = mfrc522.uid.uidByte[2];
@@ -234,8 +234,9 @@ Serial.println(mfrc522.uid.uidByte[0],HEX);
 Serial.println(mfrc522.uid.uidByte[1],HEX);
 Serial.println(mfrc522.uid.uidByte[2],HEX);
 Serial.println(mfrc522.uid.uidByte[3],HEX);
-mfrc522.PICC_HaltA();
-mqttClient.publish("test/", 0 , true ,id);
+mfrc522.PICC_HaltA(); //функция приостановки считывания меток
+mqttClient.publish("test/", 0 , true ,id); //отправка переменной, содержащей uid в топик test 
+//сброс переменных
 first_byte = 0;
 second_byte = 0;
 third_byte = 0;
@@ -245,4 +246,5 @@ strcpy(mystr2,"");
 strcpy(mystr3,"");      
 strcpy(mystr4,"");
 strcpy(id,"");
+
 }
